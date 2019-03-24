@@ -103,6 +103,6 @@ const server = net.createServer((client) => {
 });
 
 server.listen({
-  host: '25.60.173.56',
-  port: 8081
+  host: '35.184.52.154',
+  port: 9000
 });
