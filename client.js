@@ -6,22 +6,15 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-const client = net.createConnection({ port: 8081, host: '25.60.173.56' }, () => {
+const client = net.createConnection({ port: 9001, host: '25.60.173.56' }, () => {
     console.log('connected to server!');
     client.on('error', (err) => {
       console.log('error', err)
-    })
+    });
     client.write(JSON.stringify({
         type: 'changeName',
         name: 'SimpleSocket'
-    }))
-    // client.write(JSON.stringify({
-    //     type: 'message',
-    //     message: 'testando mensagem'
-    // }))
-    // rl.question('What is your name? ', (answer) => {
-    //     client.write(`name:${answer}`);
-    // });
+    }));
 });
 
 rl.on('line', (message) => {

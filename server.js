@@ -1,13 +1,13 @@
-'use strict'
+'use strict';
 const net = require('net');
 
 let clients = [];
 let messages = [];
 
 const server = net.createServer((client) => {
-  console.log('client connected');
+  console.log('New client connected');
   const thisClient = {
-    id: Math.random(),
+    id: Math.random() * (10000000) + 1,
     name: '',
     client
   };
@@ -20,7 +20,7 @@ const server = net.createServer((client) => {
   sendAttributes(thisClient);
 
   client.on('error', (err) => {
-    clientExit()
+    console.log('Client Error ->', err);
   });
 
   client.on('end', () => {
@@ -29,8 +29,7 @@ const server = net.createServer((client) => {
 
   client.on('data', (data) => {
     const { type, id = thisClient.id, name = thisClient.name, message } = JSON.parse(data);
-    console.log('Action ->', type)
-    console.log('Id ->', id)
+    console.log('Action ->', type);
     switch (type) {
       case 'message':
         sendMessage(message, id);
@@ -38,21 +37,29 @@ const server = net.createServer((client) => {
       case 'changeName':
         changeName(id, name);
         break;
-      case 'getMyAttributes':
-        sendAttributes(thisClient);
-        break;
     }
   });
 
   function sendMessage(message, senderId) {
-    messages.push({ message, senderId })
+    const date = formattedDate();
+    messages.push({ message, senderId, date })
     clients.forEach(({ client }) => {
       client.write(JSON.stringify({
         type: 'message',
         senderId,
-        message
+        message,
+        date
       }));
     });
+  }
+
+  function formattedDate(){
+    const date = new Date();
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth()+1).toString().padStart(2, '0');
+    const hora = `${date.getHours()}:${date.getMinutes()}`;
+
+    return `${day}/${month} ás ${hora}`
   }
 
   function changeName (id, newName) {
@@ -60,7 +67,7 @@ const server = net.createServer((client) => {
       if (client.id === id) {
         client.name = newName
       }
-    })
+    });
 
     const updatedClients = getUpdatedClients()
     clients.forEach(({ client }) => {
@@ -71,7 +78,7 @@ const server = net.createServer((client) => {
     })
   }
 
-  function sendAttributes({ id }) {
+  function sendAttributes({ id, client }) {
     client.write(JSON.stringify({
       type: 'attributes',
       id,
@@ -88,15 +95,11 @@ const server = net.createServer((client) => {
 
   function clientExit () {
     clients = clients.filter((client) => {
-      if (client.id !== thisClient.id) {
-        return true
-      } else {
-        messages = messages.filter((message) => {
-          return message.senderId !== thisClient.id
-        })
-        return false
-      }
-    })
+      return client.id !== thisClient.id;
+    });
+    messages = messages.filter((message) => {
+      return message.senderId !== thisClient.id
+    });
     clients.map((client) => {
       sendAttributes(client)
     })
@@ -104,6 +107,6 @@ const server = net.createServer((client) => {
 });
 
 server.listen({
-  host: '35.184.52.154',
-  port: 9000
+  host: '25.60.173.56',
+  port: 9001
 });
